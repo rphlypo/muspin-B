@@ -6,11 +6,12 @@ setZero = uint16(str2double('0'));
 % data register of the parallel port
 address = hex2dec('378');
 
-%%%%%% TODO %%%%%%
-% write trigger in the Exp structure
 
 disp(address)
 flag = [0, 0];
+
+% write trigger in the Exp structure
+Exp.Data.Triggers(end+1, :) = [GetSecs, str2num(x)];
 
 if Exp.Flags.EYETRACK
     try 
@@ -20,7 +21,7 @@ if Exp.Flags.EYETRACK
     end
 end
 
-if Exp.Flags.EEG
+if Exp.Flags.EEG || Exp.Flags.EYETRACK
     try
         outp(address, uint16(str2double(x)));
         WaitSecs(.005);

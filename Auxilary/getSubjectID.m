@@ -1,4 +1,4 @@
-function [] = getSubjectID(datapath)
+function [proposed_id] = getSubjectID(datapath)
 
 global Exp;
 
@@ -40,7 +40,7 @@ fclose(fid);
 %% get a unique ID that is not already in the available subject ID list
 validID = false;
 while ~validID
-    proposed_id = sprintf('%s%07d', n, randi(9999999));
+    proposed_id = sprintf('%s%07d', n, randi(9999999));  % 7 digit number
     if isempty(participants) || ~ismember(proposed_id, participants)
         validID = true;
         fid = fopen(fullfile(datapath, 'participants.tsv'), 'a+');
