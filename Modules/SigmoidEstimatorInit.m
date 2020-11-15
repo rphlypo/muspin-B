@@ -1,4 +1,4 @@
-function [] = SigmoidEstimatorInit()
+function [xs] = SigmoidEstimatorInit()
 
 Global Exp;
 

@@ -1,37 +1,37 @@
 % Generate Experiment Structure
 function check = GenerateExperimentStructure()
-  global Exp
-  check = 0;
+  
+    global Exp
 
-  if strcmp(Exp.Type, 'GazeEEG')  
-      Exp.Structure.TEST = cell(Exp.Parameters.TEST.NumberOfBlocks, Exp.Parameters.TEST.LengthOfBlocks);
-      for i = 1:Exp.Parameters.TEST.NumberOfBlocks
-          Exp.Structure.TEST(i, :) = sampler(Exp.Parameters.TEST.Conditions, Exp.Parameters.TEST.LengthOfBlocks, 0);
-      end  
-      
-      Exp.Structure.LEARN = cell(Exp.Parameters.LEARN.NumberOfBlocks, Exp.Parameters.LEARN.LengthOfBlocks);
-      for i = 1:Exp.Parameters.LEARN.NumberOfBlocks
-          Exp.Structure.LEARN(i, :) = sampler(Exp.Parameters.LEARN.Conditions, Exp.Parameters.LEARN.LengthOfBlocks, 0);
-      end  
-    
-      Exp.Structure.ESTIM = cell(Exp.Parameters.ESTIM.NumberOfBlocks, Exp.Parameters.ESTIM.LengthOfBlocks);
-      for i = 1:Exp.Parameters.ESTIM.NumberOfBlocks
-          Exp.Structure.ESTIM(i, :) = sampler(Exp.Parameters.ESTIM.Conditions, Exp.Parameters.ESTIM.LengthOfBlocks, 1);
-      end  
-  end
+    Exp.Parameters.NumberOfPhases = length(Exp.Parameters.Phases);
 
-  function samples = sampler(labels, n, replacement)
-    % sampling with or without replacement
-    m = length(labels);
-    if ~replacement && n<=m,
-        rp = randperm(m);
-    elseif replacement,
-        rp = randi(m, n);
-    else
-       error('ValueError', 'if sampling without replacement n should be smaller than m'); 
+    for j = 1:Exp.Parameters.NumberOfPhases
+        Phase = Exp.Parameters.Phases{j};
+        switch lower(Exp.Parameters.(Phase).Shuffling)
+            case 'blocks'
+                r = 0;
+            case 'trials'
+                r = 1;
+        end
+        Exp.Structure.(Phase) = cell(Exp.Parameters.(Phase).NumberOfBlocks, Exp.Parameters.(Phase).LengthOfBlocks);
+        Exp.Structure.(Phase) = sampler(Exp.Parameters.(Phase).Conditions, ...
+                                        Exp.Parameters.(Phase).NumberOfBlocks, ...
+                                        Exp.Parameters.(Phase).LengthOfBlocks, r);
     end
 
-    samples = labels(rp(1:n));
-
-  end
+    function samples = sampler(labels, k, n, replacement)
+        % sampling with or without replacement
+        m = length(labels);
+        if replacement==0 && n<=m,
+            for i = 1:k
+                rp(i, :) = randperm(m);
+            end
+        elseif replacement,
+            rp = randi(m, k, n);
+        else
+            error('ValueError', 'if sampling without replacement, n should be smaller than m'); 
+        end
+        
+        samples = labels(rp(:, 1:n));
+    end
 end

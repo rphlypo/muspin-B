@@ -1,55 +1,45 @@
 % Script to setup the experiment
 
-%% Start PTB
-Screen('Preference', 'SkipSyncTests', 1); % 0 for the final experiment, 1 for debugging
-
-t = clock();
-rand('seed', t(end));
-
-%% Get subject ID
-if Exp.Flags.SAVE
-    getSubjectID(fullfile('..', 'data'));
-else
-    PhaseString = 'TEST'; CondString = 'DUMMY'; 
-end
-
-if Exp.Flags.EYETRACK
-    Exp.EyeLink.gui_eye = input('Give the guiding eye : 0 for left, 1 for right : ');
-end
-
 %% Starting EEG
 stars = repmat(['*'], 1, 10);
 if Exp.Flags.EEG
-    %initialize the inpout32 low-level I/O driver
+    %initialize the inpout32 low-level I/O driver >> change for the 64-bit driver
     config_io;
-    %optional step: verify that the inpout32 driver was successfully installed
+    %optional step: verify that the inpout32 >> inpout64 driver was successfully installed
     global cogent;
     if( cogent.io.status ~= 0 )
         error('inp/h installation failed');
         return;
     end
-    fprintf([stars 'If not done yet, start EEG recording now' stars '\n']);
+    fprintf([stars 'If not yet done, you''re now ready to start the EEG recording' stars '\n']);
     KbPressWait();
 end
 
-% Triggers
+%% Set-up triggers
 Exp.Trigger = DefinitionTrigger();  % even if trigger definitions change, this stores the actual definitions
+Exp.Data.Triggers = [];  % Initialise the recording of triggers into the data structure [time, trigger]
 sendTrigger(Exp.Trigger.Init);
 
-%% Generate experiment parameters
-GenerateExperimentParameters();
+%% Start PTB
+% Screen('Preference', 'SkipSyncTests', Exp.Flags.SKIPSYNCTESTS);
+
+%% get a clock and set the seed for random numbers with it
+t = clock();
+rand('seed', t(end));
+
+%% useful function to create jitter on demand, uniformly distributed over an interval
+jitter = @() Exp.Parameters.FixPoint.WaitTime.Min + (Exp.Parameters.FixPoint.WaitTime.Max - Exp.Parameters.FixPoint.WaitTime.Min).*rand;
 
 %% Generate experiment structure
-GenerateExperimentStructure();
+GenerateExperimentStructure();  % checked, ok
 
-%% Generate Grating texture
-
-% Screen
-Exp.PTB.W = .0404;
-Exp.PTB.H = .0302; % meters
+%% Screen dimensions +++++++++++++ NEEDS CHECKING +++++++++++++
+Exp.PTB.W = .0404;  % meters ?????
+Exp.PTB.H = .0302;  % meters ?????
 Exp.PTB.D = round(1e4 * sqrt(Exp.PTB.W^2 + Exp.PTB.H^2)) / 1e4; % .06; % meters
-Exp.PTB.res = [1280, 1024];
+Exp.PTB.res = [1280, 1024];  % resolution in pixels
 
+%% generate Grating texture
 GenerateExperimentVisuals();
 
 %% PTB initialisation
@@ -68,12 +58,12 @@ if Exp.Flags.DUMMY
 end
 
 %% Grating creating
-[glsl] = GratingCreatingUpdating(win, 0);
+glsl = GratingCreatingUpdating(win);
 
 %% Sigmoid estimator initialization
 % Initialize variables and sigmoid function for psychometric estimation
 if Exp.Flags.SIGMOIDESTIMATE
-    SigmoidEstimatorInit();
+    xs = SigmoidEstimatorInit();
 end
 
 %% log-normal parameter estimation data initialization
@@ -84,5 +74,7 @@ if Exp.Flags.EYETRACK
     el = ELInit(win);
 end
 
-%% Experiment text
-PrepareExpText();
+%% run in dummy mode if data is not to be saved
+if ~Exp.Flags.SAVE
+    PhaseString = 'TEST'; CondString = 'DUMMY'; 
+end

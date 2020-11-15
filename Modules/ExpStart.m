@@ -1,3 +1,18 @@
+%% Shutdown Eyelink to properly restart later
+if Exp.Flags.EYETRACK
+    Eyelink('ShutDown'); 
+end
+
+%% Make sure EEG recording has been started
+% if Exp.Flags.EEG
+%     fprintf('\n --- Experimenter starts EEG recording ...');
+%     MsgEEG = 'Veuillez patienter, l''experimentateur commence l''enregistrement EEG';
+%     Screen('FillRect', win, Exp.Visual.Common.bckcol);
+%     DrawFormattedText(win, MsgEEG ,'center' , 'center', Exp.Visual.Common.texcol);
+%     Screen('Flip', win );
+%     fprintf(' press any key when ready ---\n');  % msgbox ???
+% end
+
 %% Start experiment
 DrawFormattedText(win, Exp.Text.startingMsg, 'center', 'center', Exp.Visual.Common.texcol);
 vbl = Screen('Flip', win);
@@ -31,5 +46,15 @@ Screen('Windows')
 % smoothly without a noticable glitch:
 thre = 1 / (abs(max(Exp.Visual.Grating(1).speed)) * min([Exp.Visual.Grating(1).freq, Exp.Visual.Grating(2).freq]));
 
+% set-up screen for experimental run
 HideCursor;
 Screen('Windows')
+
+% Bookkeeping variables
+Exp.Current = struct();
+Durations = [];
+Trials = struct();
+Trials.globalcount = 0;
+
+sendTrigger(Exp.Trigger.Acquisition.Start);
+fprintf(['\n ' stars ' Experimental loop will begin ' stars '\n']);

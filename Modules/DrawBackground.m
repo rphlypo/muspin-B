@@ -1,0 +1,1 @@
+Screen('FillRect', win, [Exp.Visual.Common.bckcol, Exp.Visual.Common.bckcol, Exp.Visual.Common.bckcol], Exp.PTB.winRect);

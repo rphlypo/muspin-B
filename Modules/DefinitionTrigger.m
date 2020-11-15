@@ -15,6 +15,12 @@ Trigger.Trial.Consigne      = '21';
 Trigger.Trial.AskForPercept = '22';
 Trigger.Trial.End           = '29';
 
+%% Unique Block IDs, mere placeholders to reserve triggers 100--119
+Trigger.Block.BaseIndex     = 100;
+for k = 1:19
+    Trigger.(['Block' num2str(k)]).Start    = num2str(100+k);
+end
+
 %% fixation cross and consignes
 Trigger.FixationCross.Start     = '30';
 Trigger.FixationCross.FrameFlip = '31';
